@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (url.includes("https")) {res.status(200).json(generateTrace(-1, "101_INVALID_QUERY", {})); return}
     const url2 = "https://www.youtube.com/watch?v=" + url
     if (ytdl.validateURL(url2) == true) {
-      let cache = (Math.random() + 1).toString(36).substring(2);const I = path.join(process.cwd(), `temp-${cache}.mp3`);const O = path.join(path.join(process.cwd(), "public"), `temp-${cache}.dfpwm`);const audioWriteStream = fs.createWriteStream(I);var audio = await ytdl(url2, { quality: "highestaudio" });
+      let cache = (Math.random() + 1).toString(36).substring(2);const I = path.join(process.cwd(), path.join("/tmp",`temp-${cache}.mp3`));const O = path.join(path.join(process.cwd(), "/tmp"), `temp-${cache}.dfpwm`);const audioWriteStream = fs.createWriteStream(I);var audio = await ytdl(url2, { quality: "highestaudio" });
       audio.pipe(audioWriteStream);
 
       audio.on("finish", async () => {
