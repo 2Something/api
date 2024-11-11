@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (url && typeof(url) == "string") {
     if (url.includes("https")) {res.status(200).json(generateTrace(-1, "101_INVALID_QUERY", {})); return}
     const url2 = "https://www.youtube.com/watch?v=" + url
-    const agent = ytdl.createAgent(JSON.parse(fs.readFileSync("/cookies.json", "utf8")))
+    const agent = ytdl.createAgent(JSON.parse(fs.readFileSync("./public/cookies.json", "utf8")))
     if (ytdl.validateURL(url2) == true) {
       const chunks: Buffer = await downloadPCM(url2,agent)
       const outputStream = new PassThrough();
