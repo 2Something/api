@@ -3,6 +3,7 @@ import ytdl from "@distube/ytdl-core";
 import ffmpeg from 'fluent-ffmpeg'
 import {PassThrough, Readable, Writable} from 'stream'
 import * as dfpwm from 'dfpwm'
+import * as fs from 'fs'
 
 /*let cache = (Math.random() + 1).toString(36).substring(2);const I = path.join("/tmp",`temp-${cache}.mp3`);const O = path.join("/tmp",`temp-${cache}.dfpwm`);const audioWriteStream = fs.createWriteStream(I);var audio = await ytdl(url2, { quality: "highestaudio" });
       audio.pipe(audioWriteStream);
@@ -43,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (url && typeof(url) == "string") {
     if (url.includes("https")) {res.status(200).json(generateTrace(-1, "101_INVALID_QUERY", {})); return}
     const url2 = "https://www.youtube.com/watch?v=" + url
-    const agent = ytdl.createProxyAgent({"uri": "193.227.129.212:8001"})
+    const agent = ytdl.createAgent(JSON.parse(fs.readFileSync("/cookies.json", "utf8")))
     if (ytdl.validateURL(url2) == true) {
       const chunks: Buffer = await downloadPCM(url2,agent)
       const outputStream = new PassThrough();
