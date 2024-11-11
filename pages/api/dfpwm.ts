@@ -56,9 +56,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const pcmChunks: any = [];
 
-    ffmpeg.setFfmpegPath(require("ffmpeg-static"))
-
     const fp = ffmpeg(Readable.from(chunks))
+      .setFfmpegPath(require("ffmpeg-static"))
       .audioCodec("pcm_s8")
       .format("s8")
       .audioBitrate("48k")
