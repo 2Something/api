@@ -21,10 +21,10 @@ import * as dfpwm from 'dfpwm'
 
 function generateTrace(code, trace, content) {return {"Code": code, "Exception": trace, "DATA": content}}
 
-async function downloadPCM(url: string) {
+async function downloadPCM(url: string, proxy) {
     // Step 1: Download YouTube audio stream
     console.log("Downloading audio...");
-    const audioStream = ytdl(url, { filter: 'audioonly', quality: 'highestaudio' });
+    const audioStream = ytdl(url, { filter: 'audioonly', quality: 'highestaudio', agent: proxy});
     const chunks: any = [];
     audioStream.on("data", chunk => chunks.push(chunk))
 
@@ -43,8 +43,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (url && typeof(url) == "string") {
     if (url.includes("https")) {res.status(200).json(generateTrace(-1, "101_INVALID_QUERY", {})); return}
     const url2 = "https://www.youtube.com/watch?v=" + url
+    const agent = ytdl.createProxyAgent({"uri": "193.227.129.212:8001"})
     if (ytdl.validateURL(url2) == true) {
-      const chunks: Buffer = await downloadPCM(url2)
+      const chunks: Buffer = await downloadPCM(url2,agent)
       const outputStream = new PassThrough();
 
       const pcmChunks: any = [];
