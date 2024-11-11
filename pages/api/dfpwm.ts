@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import ytdl from "@distube/ytdl-core";
 import ffmpeg from 'fluent-ffmpeg'
 import {PassThrough, Readable, Writable} from 'stream'
 import * as dfpwm from 'dfpwm'
@@ -23,27 +22,21 @@ import axios from "axios";
 function generateTrace(code, trace, content) {return {"Code": code, "Exception": trace, "DATA": content}}
 
 async function downloadPCM(url: string) {
-  const info = await ytdl.getInfo(url)
-  const audioFormats = info.formats.filter(format => format.hasAudio && !format.hasVideo);
+  
 
-  // Get the URL of the first available audio stream
-  const audioUrl = audioFormats.length > 0 ? audioFormats[0].url : null;
+  // Step 1: Download YouTube audio stream
+  /*console.log("Downloading audio...");
+  const audioStream = ytdl(url, { filter: 'audioonly'});
+  const chunks: any = [];
+  audioStream.on("data", chunk => chunks.push(chunk))
 
-  if (audioUrl) {
-
-    // Step 1: Download YouTube audio stream
-    /*console.log("Downloading audio...");
-    const audioStream = ytdl(url, { filter: 'audioonly'});
-    const chunks: any = [];
-    audioStream.on("data", chunk => chunks.push(chunk))
-
-    return new Promise<Buffer>(resolve => audioStream.on("end", () => {resolve(Buffer.concat(chunks))}))*/
-    return Buffer.from((await axios({
-      method: "get",
-      url: audioUrl,
-      responseType: "arraybuffer"
-    })).data)
-  } else {return Buffer.concat([])}
+  return new Promise<Buffer>(resolve => audioStream.on("end", () => {resolve(Buffer.concat(chunks))}))*/
+  return Buffer.from((await axios({
+    method: "get",
+    url: url,
+    responseType: "arraybuffer"
+  })).data)
+  
   
   
 
@@ -56,27 +49,23 @@ async function downloadPCM(url: string) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const {url} = req.query
   if (url && typeof(url) == "string") {
-    if (url.includes("https")) {res.status(200).json(generateTrace(-1, "101_INVALID_QUERY", {})); return}
-    const url2 = "https://www.youtube.com/watch?v=" + url
-    //const agent = ytdl.createProxyAgent({uri: "https://nl.hideproxy.me"})
-    if (ytdl.validateURL(url2) == true) {
-      const chunks: Buffer = await downloadPCM(url2)
-      const outputStream = new PassThrough();
+    
+    
+    const chunks: Buffer = await downloadPCM(url)
+    const outputStream = new PassThrough();
 
-      const pcmChunks: any = [];
+    const pcmChunks: any = [];
 
-      ffmpeg.setFfmpegPath(require("ffmpeg-static"))
+    ffmpeg.setFfmpegPath(require("ffmpeg-static"))
 
-      const fp = ffmpeg(Readable.from(chunks))
-        .audioCodec("pcm_s8")
-        .format("s8")
-        .audioBitrate("48k")
-        .audioChannels(1)
-        .pipe(outputStream)
+    const fp = ffmpeg(Readable.from(chunks))
+      .audioCodec("pcm_s8")
+      .format("s8")
+      .audioBitrate("48k")
+      .audioChannels(1)
+      .pipe(outputStream)
 
-      outputStream.on("data", chunk => pcmChunks.push(chunk))
-      outputStream.on("end", () => {res.send(new dfpwm.Encoder().encode(Buffer.concat(pcmChunks)))})
-    }
-
+    outputStream.on("data", chunk => pcmChunks.push(chunk))
+    outputStream.on("end", () => {res.send(new dfpwm.Encoder().encode(Buffer.concat(pcmChunks)))})
   }
 }
