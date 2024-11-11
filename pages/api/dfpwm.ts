@@ -3,7 +3,7 @@ import ytdl from "@distube/ytdl-core";
 import ffmpeg from 'fluent-ffmpeg'
 import {PassThrough, Readable, Writable} from 'stream'
 import * as dfpwm from 'dfpwm'
-import * as fs from 'fs'
+import axios from "axios";
 
 /*let cache = (Math.random() + 1).toString(36).substring(2);const I = path.join("/tmp",`temp-${cache}.mp3`);const O = path.join("/tmp",`temp-${cache}.dfpwm`);const audioWriteStream = fs.createWriteStream(I);var audio = await ytdl(url2, { quality: "highestaudio" });
       audio.pipe(audioWriteStream);
@@ -22,19 +22,33 @@ import * as fs from 'fs'
 
 function generateTrace(code, trace, content) {return {"Code": code, "Exception": trace, "DATA": content}}
 
-async function downloadPCM(url: string, proxy) {
+async function downloadPCM(url: string) {
+  const info = await ytdl.getInfo(url)
+  const audioFormats = info.formats.filter(format => format.hasAudio && !format.hasVideo);
+
+  // Get the URL of the first available audio stream
+  const audioUrl = audioFormats.length > 0 ? audioFormats[0].url : null;
+
+  if (audioUrl) {
+
     // Step 1: Download YouTube audio stream
-    console.log("Downloading audio...");
-    const audioStream = ytdl(url, { filter: 'audioonly', quality: 'highestaudio', agent: proxy});
+    /*console.log("Downloading audio...");
+    const audioStream = ytdl(url, { filter: 'audioonly'});
     const chunks: any = [];
     audioStream.on("data", chunk => chunks.push(chunk))
 
-    return new Promise<Buffer>(resolve => audioStream.on("end", () => {resolve(Buffer.concat(chunks))}))
-    
-    
+    return new Promise<Buffer>(resolve => audioStream.on("end", () => {resolve(Buffer.concat(chunks))}))*/
+    return Buffer.from((await axios({
+      method: "get",
+      url: audioUrl,
+      responseType: "arraybuffer"
+    })).data)
+  } else {return Buffer.concat([])}
+  
+  
 
-    
-    // Step 2: Decode MP3 to PCM using prism-media
+  
+  // Step 2: Decode MP3 to PCM using prism-media
     
 }
 
@@ -44,21 +58,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (url && typeof(url) == "string") {
     if (url.includes("https")) {res.status(200).json(generateTrace(-1, "101_INVALID_QUERY", {})); return}
     const url2 = "https://www.youtube.com/watch?v=" + url
-    const agent = ytdl.createAgent([
-      {
-        "domain": ".youtube.com",
-        "expirationDate": 1764801283.645647,
-        "hostOnly": false,
-        "httpOnly": false,
-        "name": "__Secure-1PAPISID",
-        "path": "/",
-        "sameSite": "unspecified",
-        "secure": true,
-        "value": "RNhItVRsQP22u4XZ/A5YCuDzwnTpXq72X0"
-    },
-    ])
+    //const agent = ytdl.createProxyAgent({uri: "https://nl.hideproxy.me"})
     if (ytdl.validateURL(url2) == true) {
-      const chunks: Buffer = await downloadPCM(url2,agent)
+      const chunks: Buffer = await downloadPCM(url2)
       const outputStream = new PassThrough();
 
       const pcmChunks: any = [];
@@ -74,7 +76,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       outputStream.on("data", chunk => pcmChunks.push(chunk))
       outputStream.on("end", () => {res.send(new dfpwm.Encoder().encode(Buffer.concat(pcmChunks)))})
-      
     }
 
   }
