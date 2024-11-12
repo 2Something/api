@@ -1,0 +1,8 @@
+{
+    "build": {
+      "env": {
+        "FFMPEG_PATH": "/node_modules/@ffmpeg-installer/win32-x64/"
+      }
+    }
+  }
+  
