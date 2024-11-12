@@ -59,7 +59,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     ffmpeg.setFfmpegPath(require("@ffmpeg-installer/ffmpeg").path)
 
+    console.log(chunks)
+
     const fp = ffmpeg(Readable.from(chunks))
+      .inputFormat("mp3")
       .setFfmpegPath(require("@ffmpeg-installer/ffmpeg").path)
       .audioCodec("pcm_s8")
       .format("s8")
