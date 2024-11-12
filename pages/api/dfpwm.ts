@@ -3,6 +3,7 @@ import {PassThrough, Readable, Writable} from 'stream'
 import * as dfpwm from 'dfpwm'
 import axios from "axios";
 const ffmpeg = require("fluent-ffmpeg")
+import { FfmpegCommand } from "fluent-ffmpeg";
 
 /*let cache = (Math.random() + 1).toString(36).substring(2);const I = path.join("/tmp",`temp-${cache}.mp3`);const O = path.join("/tmp",`temp-${cache}.dfpwm`);const audioWriteStream = fs.createWriteStream(I);var audio = await ytdl(url2, { quality: "highestaudio" });
       audio.pipe(audioWriteStream);
@@ -50,7 +51,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const {url} = req.query
   if (url && typeof(url) == "string") {
     
-    
     const chunks: Buffer = await downloadPCM(url)
     const outputStream = new PassThrough();
 
@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .setFfmpegPath(require("@ffmpeg-installer/ffmpeg").path)
       .audioCodec("pcm_s8")
       .format("s8")
-      .audioBitrate("48k")
+      .outputOptions("-ar", "48000")
       .audioChannels(1)
       .pipe(outputStream)
 
