@@ -1,7 +1,8 @@
 {
     "build": {
       "env": {
-        "FFMPEG_PATH": "/node_modules/@ffmpeg-installer/win32-x64/"
+        "FFMPEG_PATH": "/node_modules/@ffmpeg-installer/win32-x64/",
+        "FFPROBE_PATH": "node_modules/@ffprobe-installer/linux-x64/ffprobe"
       }
     }
   }
