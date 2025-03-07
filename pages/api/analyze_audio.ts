@@ -2,6 +2,7 @@ const ffmpeg = require("fluent-ffmpeg")
 
 ffmpeg.setFfmpegPath(require("@ffmpeg-installer/ffmpeg").path)
 ffmpeg.setFfprobePath(require("@ffprobe-installer/ffprobe").path)
+console.log(require("@ffprobe-installer/ffprobe").path)
 
 import { NextApiRequest, NextApiResponse } from "next";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
