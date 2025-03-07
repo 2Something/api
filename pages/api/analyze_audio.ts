@@ -1,7 +1,5 @@
 const ffmpeg = require("fluent-ffmpeg")
 
-ffmpeg.setFfmpegPath(require("@ffmpeg-installer/ffmpeg").path)
-
 import { NextApiRequest, NextApiResponse } from "next";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const { url } = req.query;
@@ -21,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 function getDurationFromUrl(url: string): Promise<number> {
     return new Promise((resolve, reject) => {
-        ffmpeg.setFfmpegPath(require("@ffmpeg-installer/ffmpeg").path)
+        ffmpeg.setFfprobePath(require("@ffprobe-installer/ffprobe").path)
         ffmpeg
             .ffprobe(url, (err, metadata) => {
                 if (err) {
